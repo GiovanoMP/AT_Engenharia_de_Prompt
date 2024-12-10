@@ -1,0 +1,130 @@
+{
+    "Economia": {
+        "resumo_geral": "As proposições legislativas abrangem temas como contratos de seguro, responsabilidade fiscal, cooperativas e financiamento da Previdência Social, Assistência Social e Sistema Único de Saúde. As proposições legislativas destinam recursos de loterias a instituições de saúde e sociais, aprimoram o processamento de boletos bancários, fortalecem a prevenção à lavagem de dinheiro e permitem a alteração de vencimento de contratos de crédito pelos consumidores.",
+        "temas_principais": [
+            "Contratos de Seguro",
+            "Responsabilidade Fiscal",
+            "Saúde",
+            "Políticas Sociais",
+            "Cooperativas"
+        ],
+        "proposicoes_destaque": [
+            {
+                "id": "253500",
+                "resumo": "Estabelece regras gerais para contratos de seguro privado, incluindo a revogação de leis anteriores."
+            },
+            {
+                "id": "379298",
+                "resumo": "Suspende temporariamente o pagamento de dívidas de municípios em situações de emergência ou calamidade pública."
+            },
+            {
+                "id": "599485",
+                "resumo": "Permite que cargos de diretoria em cooperativas sejam ocupados por não associados."
+            },
+            {
+                "id": "1786192",
+                "resumo": "Aumenta o repasse de receitas de loterias para Previdência Social, Assistência Social e Sistema Único de Saúde."
+            },
+            {
+                "id": "2074942",
+                "resumo": "Destina 1% da arrecadação das Loterias Federais para o INCA."
+            },
+            {
+                "id": "2124303",
+                "resumo": "Destina a renda líquida de um concurso da Mega Sena à Federação Brasileira das Associações de Síndrome de Down."
+            },
+            {
+                "id": "2141516",
+                "resumo": "Torna mais eficiente a prevenção da utilização do Sistema Financeiro Nacional para lavagem de dinheiro."
+            },
+            {
+                "id": "2164554",
+                "resumo": "Permite que o consumidor altere a data de vencimento de contratos de crédito."
+            }
+        ]
+    },
+    "Educação": {
+        "resumo_geral": "Estas proposições legislativas visam incorporar tópicos específicos no currículo escolar, como orientação sobre drogas, educação sexual e prevenção de doenças sexualmente transmissíveis e uso de drogas. Estes projetos de lei abrangem diversas áreas da educação, incluindo prevenção às drogas, campanha antitabagismo e ampliação do acesso ao ensino superior.",
+        "temas_principais": [
+            "Prevenção de DSTs",
+            "Educação Sexual",
+            "Tabagismo",
+            "Educação em Saúde",
+            "Drogas"
+        ],
+        "proposicoes_destaque": [
+            {
+                "id": "293703",
+                "resumo": "Inclusão de matéria sobre problemas decorrentes do consumo de drogas no currículo escolar."
+            },
+            {
+                "id": "307658",
+                "resumo": "Inclusão de educação sexual no currículo das escolas de ensino fundamental."
+            },
+            {
+                "id": "346189",
+                "resumo": "Criação de Programa de Orientação Sexual, Prevenção de DSTs e Uso de Drogas."
+            },
+            {
+                "id": "346403",
+                "resumo": "Criação de Programa de Orientação Sexual, Prevenção de DSTs e Uso de Drogas."
+            },
+            {
+                "id": "381426",
+                "resumo": "Cria o Programa Educacional de Resistência às Drogas (PROERD)"
+            },
+            {
+                "id": "407963",
+                "resumo": "Inclui conteúdo sobre drogas na grade curricular do ensino fundamental e médio"
+            },
+            {
+                "id": "465669",
+                "resumo": "Estabelece campanha antitabagismo nas escolas públicas e particulares"
+            },
+            {
+                "id": "498056",
+                "resumo": "Altera o PROUNI para incluir bolsas de pós-graduação"
+            }
+        ]
+    },
+    "Ciência, Tecnologia e Inovação": {
+        "resumo_geral": "Estas proposições legislativas visam promover Ciência, Tecnologia e Inovação no Brasil, incluindo incentivos à pesquisa, educação e aquisição de produtos inovadores. As proposições legislativas visam incentivar a pesquisa e inovação, principalmente na área de saúde, tecnologia e inclusão digital.",
+        "temas_principais": [
+            "Saúde",
+            "Tecnologia",
+            "Incentivos fiscais",
+            "Aquisição de inovação",
+            "Financiamento à pesquisa"
+        ],
+        "proposicoes_destaque": [
+            {
+                "id": "347764",
+                "resumo": "Redestina recursos para educação e ciência e tecnologia do Fundo de Universalização dos Serviços de Telecomunicações."
+            },
+            {
+                "id": "513096",
+                "resumo": "Cria o Prêmio Brasil para incentivar a pesquisa e a aplicação de conhecimento para o desenvolvimento humano."
+            },
+            {
+                "id": "545804",
+                "resumo": "Permite a aquisição de produtos ou processos inovadores gerados por meio de políticas de fomento à pesquisa e desenvolvimento."
+            },
+            {
+                "id": "2080294",
+                "resumo": "Financiamento para pesquisa e desenvolvimento de tratamentos para epidemias virais e câncer."
+            },
+            {
+                "id": "2207458",
+                "resumo": "Incentivos para startups e empresas de inovação e tecnologia."
+            },
+            {
+                "id": "2207821",
+                "resumo": "Ferramentas de tradução para a Língua Brasileira de Sinais em portais e dispositivos eletrônicos."
+            },
+            {
+                "id": "2236291",
+                "resumo": "Ampliação de incentivos fiscais para investimentos em pesquisa, desenvolvimento e inovação na indústria de tecnologia da informação e comunicação."
+            }
+        ]
+    }
+}

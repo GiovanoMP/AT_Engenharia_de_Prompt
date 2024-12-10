@@ -1,0 +1,26 @@
+{
+    "sumarizacoes_por_tema": [
+        {
+            "tema": "Economia",
+            "quantidade_proposicoes": 10,
+            "sumarizacao": "**1. Resumo Geral**\n\nAs propostas apresentadas abrangem uma ampla gama de temas econômicos, desde regulamentação de seguros até destinações de fundos públicos.\n\n**2. Temas Recorrentes**\n\n* Regulamentação financeira (Proposições 2141516, 2164554, 253500)\n* Destinação de recursos para programas sociais (Proposições 1786192, 2074942, 2124303)\n* Proteção ao consumidor (Proposição 2164554)\n* Modernização da legislação econômica (Proposições 599485, 955550)\n\n**3. Possíveis Impactos na Sociedade**\n\n* Maior proteção aos consumidores no sistema financeiro\n* Aumento de recursos para programas de saúde, previdência e assistência social\n* Maior transparência e eficiência na regulação de seguros\n* Flexibilização de regras para cooperativas\n* Possibilidade de mudança na data de vencimento de contratos de crédito\n\n**4. Pontos de Destaque**\n\n* A Proposição 2130732 propõe um critério preferencial para processamento de boletos com base na cronologia de pagamentos.\n* A Proposição 253500 estabelece normas abrangentes para contratos de seguro, revogando dispositivos de três leis diferentes.\n* A Proposição 1786192 sugere um aumento significativo na porcentagem de receitas de loterias destinadas a programas sociais."
+        },
+        {
+            "tema": "Educação",
+            "quantidade_proposicoes": 10,
+            "sumarizacao": "**1. Resumo Geral das Principais Propostas**\n\nAs propostas visam incorporar conteúdos relacionados à saúde e educação nas escolas, principalmente nas áreas de educação sexual, prevenção de drogas e tabagismo. Elas também buscam aumentar os recursos para educação e ciência e tecnologia, além de ampliar o acesso ao ensino superior.\n\n**2. Temas Recorrentes ou Padrões Identificados**\n\n* Ênfase na educação preventiva em saúde\n* Preocupação com o consumo de drogas\n* Busca por maior financiamento para educação\n* Ampliação do acesso à educação em todos os níveis\n\n**3. Possíveis Impactos na Sociedade**\n\n* Melhoria da saúde pública por meio de uma maior conscientização e educação sobre hábitos nocivos\n* Redução do uso e abuso de drogas\n* Maior equidade e acesso à educação\n* Avanços em educação e inovação científica\n\n**4. Pontos de Destaque ou Inovações**\n\n* Criação de programas abrangentes de orientação sexual e prevenção de doenças sexualmente transmissíveis\n* Implementação do Programa Educacional de Resistência às Drogas (PROERD) nas escolas\n* Campanha antitabagismo nas escolas para desencorajar o fumo jovem\n* Ampliação do PROUNI para incluir bolsas de pós-graduação"
+        },
+        {
+            "tema": "Ciência, Tecnologia e Inovação",
+            "quantidade_proposicoes": 10,
+            "sumarizacao": "**1. Resumo Geral**\n\nAs propostas visam promover a Ciência, Tecnologia e Inovação (CT&I) no Brasil por meio de iniciativas como:\n\n* Ampliar o financiamento para educação, ciência e tecnologia\n* Estender incentivos fiscais para jogos eletrônicos\n* Instituir prêmios para pesquisa e desenvolvimento\n* Facilitar a aquisição de produtos inovadores gerados por políticas de fomento\n* Reduzir impostos sobre equipamentos de informática para famílias de baixa renda\n* Incentivar startups e empresas de inovação\n* Tornar obrigatória a tradução de conteúdos digitais para Língua Brasileira de Sinais\n* Ampliar o crédito financeiro para investimentos em pesquisa e desenvolvimento em CT&I\n\n**2. Temas Recorrentes**\n\n* Incentivo à pesquisa, desenvolvimento e inovação\n* Acesso à tecnologia e educação para todos\n* Desenvolvimento do setor de tecnologia e inovação no Brasil\n\n**3. Possíveis Impactos na Sociedade**\n\n* Maior acesso à educação e conhecimento em CT&I\n* Inovações tecnológicas que podem melhorar a qualidade de vida\n* Geração de empregos e desenvolvimento econômico\n* Maior inclusão digital para pessoas com deficiência\n* Maior apoio à pesquisa científica e desenvolvimento de soluções para problemas de saúde\n\n**4. Pontos de Destaque ou Inovações**\n\n* Criação do Programa Brasil Semicondutores para impulsionar o setor de semicondutores\n* Incentivos específicos para startups e empresas de inovação\n* Obrigatoriedade de tradução de conteúdos digitais para Língua Brasileira de Sinais"
+        }
+    ],
+    "data_referencia": "2024-08-01 a 2024-08-30",
+    "total_proposicoes": 30,
+    "temas_analisados": [
+        "Economia",
+        "Educação",
+        "Ciência, Tecnologia e Inovação"
+    ]
+}

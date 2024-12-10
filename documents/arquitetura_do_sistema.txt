@@ -1,0 +1,135 @@
+1. Arquitetura da Solução
+O diagrama desenvolvido com  Mermaid mostra claramente todos os componentes solicitados. A arquitetura foi dividida em três camadas principais:
+
+2. Descrição da Arquitetura
+
+1. Camada de Dados e Coleta
+
+Fonte de Dados: API da Câmara dos Deputados
+Endpoint base: https://dadosabertos.camara.leg.br/api/v2/
+Coleta dados de deputados, despesas e proposições
+Período específico: 01/08/2024 a 30/08/2024
+
+2. Camada de Processamento (dataprep.py)
+
+Coleta de Dados
+Requisições HTTP para API
+Tratamento de respostas
+Validação de dados
+Preparação dos Dados
+Limpeza e estruturação
+Transformação para formatos adequados
+Geração de embeddings para FAISS
+Processamento com LLMs
+Gemini Flash como LLM principal
+Análises comparativas com outros LLMs
+Geração de insights e sumarizações
+
+3. Camada de Armazenamento
+
+Config YAML
+Configurações do sistema
+Parâmetros dos modelos
+Sumarizações principais
+Arquivos JSON
+Insights gerados
+Resultados de análises
+Metadados importantes
+Arquivos Parquet
+Dados estruturados dos deputados
+Histórico de despesas
+Proposições processadas
+Base Vetorial FAISS
+Embeddings dos textos
+Índices para busca semântica
+Suporte ao assistente virtual
+
+4. Camada de Interface (dashboard.py)
+
+Aba Overview
+Visão geral do sistema
+Principais indicadores
+Gráficos resumo
+Aba Despesas
+Análise detalhada de gastos
+Visualizações temporais
+Filtros por deputado/partido
+Aba Proposições
+Lista de proposições
+Sumarizações
+Imagens geradas
+Assistente Virtual
+Interface de chat
+Consultas à base vetorial
+Respostas contextualizadas
+
+3. Funcionamento dos LLMs para Sumarização
+Os LLMs (Large Language Models) são utilizados no projeto para sumarização através de várias técnicas:
+
+Processamento por Chunks
+Divisão de textos longos em partes menores
+Processamento individual de cada chunk
+Consolidação das sumarizações
+Prompt Engineering
+Prompts específicos para cada tipo de conteúdo
+Instruções claras para manter consistência
+Exemplos para guiar o modelo
+Técnicas de Sumarização:
+Extractive: seleção das partes mais relevantes
+Abstractive: geração de novo texto resumido
+Híbrida: combinação das duas abordagens
+Controle de Qualidade
+Validação de outputs
+Comparação entre diferentes modelos
+Métricas de avaliação
+Otimizações
+Cache de resultados frequentes
+Paralelização de processamento
+Balanceamento de carga
+Esta arquitetura permite um processamento eficiente e escalável dos dados da Câmara, com foco em:
+
+Processamento assíncrono
+Armazenamento otimizado
+Interface responsiva
+Análises contextualizadas
+
+Estrutura das pastas do projeto:
+Estrutura das pastas no projeto:
+
+📁 AT_eng_prompt_local/
+├── 📁 src/
+│   ├── 📄 dataprep.py        # Processamento offline
+│   ├── 📄 dashboard.py       # Interface do usuário
+│   └── 📄 config.py          # Configurações globais
+├── 📁 data/
+│   ├── 📁 raw/               # Dados brutos da API
+│   ├── 📁 processed/         # Dados processados
+│   │   ├── 📄 deputados.parquet
+│   │   ├── 📄 despesas.parquet
+│   │   └── 📄 proposicoes.parquet
+│   ├── 📁 embeddings/        # Base vetorial FAISS
+│   ├── 📁 images/            # Imagens geradas
+│   └── 📄 config.yaml        # Configurações do sistema
+├── 📁 docs/
+│   ├── 📄 project_charter.txt
+│   ├── 📄 arquitetura_do_sistema.txt
+│   └── 📁 images/
+│       └── 📄 distribuicao_deputados.png
+├── 📁 tests/                 # Testes unitários
+│   ├── 📄 test_dataprep.py
+│   └── 📄 test_dashboard.py
+├── 📄 requirements.txt       # Dependências do projeto
+├── 📄 .env                   # Variáveis de ambiente (não versionado)
+├── 📄 .gitignore            # Arquivos ignorados pelo git
+└── 📄 README.md             # Documentação principal
+
+
+AT_eng_prompt_local/ ├── src/ # Código fonte │ ├── dataprep.py # Processamento offline │ ├── dashboard.py # Interface do usuário │ └── config.py # Configurações globais ├── data/ # Dados do sistema │ ├── raw/ # Dados brutos da API │ ├── processed/ # Dados processados │ ├── embeddings/ # Base vetorial FAISS │ ├── images/ # Imagens geradas │ └── config.yaml # Configurações do sistema ├── docs/ # Documentação │ ├── project_charter.txt │ ├── arquitetura_do_sistema.txt │ └── images/ ├── tests/ # Testes unitários ├── requirements.txt # Dependências ├── .env # Variáveis de ambiente └── README.md # Documentação principal
+
+
+Esta estrutura foi organizada para:
+- Separar claramente código fonte, dados e documentação
+- Manter dados sensíveis fora do controle de versão
+- Facilitar o desenvolvimento e testes
+- Organizar os diferentes tipos de dados processados
+- Manter a documentação acessível e organizada

@@ -1,0 +1,183 @@
+{
+    "analises": {
+        "top_10_deputados": {
+            "valores": {
+                "João Carlos Bacelar": 115245.7,
+                "Pompeo de Mattos": 101851.47,
+                "Arthur Oliveira Maia": 94161.8,
+                "Antônio Doido": 91864.03,
+                "Duda Ramos": 87996.56,
+                "Cleber Verde": 85175.82,
+                "Damião Feliciano": 77766.29000000001,
+                "Weliton Prado": 67363.86,
+                "José Airton Félix Cirilo": 66565.84,
+                "Júlio Cesar": 65635.47
+            },
+            "partidos": {
+                "João Carlos Bacelar": "PL",
+                "Pompeo de Mattos": "PDT",
+                "Arthur Oliveira Maia": "UNIÃO",
+                "Antônio Doido": "MDB",
+                "Duda Ramos": "MDB",
+                "Cleber Verde": "MDB",
+                "Damião Feliciano": "UNIÃO",
+                "Weliton Prado": "SOLIDARIEDADE",
+                "José Airton Félix Cirilo": "PT",
+                "Júlio Cesar": "PSD"
+            }
+        },
+        "distribuicao_despesas": {
+            "DIVULGAÇÃO DA ATIVIDADE PARLAMENTAR.": {
+                "soma": 6146142.0,
+                "quantidade": 923.0
+            },
+            "LOCAÇÃO OU FRETAMENTO DE VEÍCULOS AUTOMOTORES": {
+                "soma": 3382506.42,
+                "quantidade": 467.0
+            },
+            "MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARLAMENTAR": {
+                "soma": 2511547.32,
+                "quantidade": 1352.0
+            },
+            "PASSAGEM AÉREA - SIGEPA": {
+                "soma": 2162456.13,
+                "quantidade": 1665.0
+            },
+            "COMBUSTÍVEIS E LUBRIFICANTES.": {
+                "soma": 1952314.25,
+                "quantidade": 5384.0
+            },
+            "HOSPEDAGEM ,EXCETO DO PARLAMENTAR NO DISTRITO FEDERAL.": {
+                "soma": 298444.77,
+                "quantidade": 476.0
+            },
+            "LOCAÇÃO OU FRETAMENTO DE AERONAVES": {
+                "soma": 260178.8,
+                "quantidade": 10.0
+            },
+            "TELEFONIA": {
+                "soma": 171947.27,
+                "quantidade": 379.0
+            },
+            "SERVIÇO DE SEGURANÇA PRESTADO POR EMPRESA ESPECIALIZADA.": {
+                "soma": 107222.26,
+                "quantidade": 36.0
+            },
+            "SERVIÇO DE TÁXI, PEDÁGIO E ESTACIONAMENTO": {
+                "soma": 94366.0,
+                "quantidade": 764.0
+            },
+            "FORNECIMENTO DE ALIMENTAÇÃO DO PARLAMENTAR": {
+                "soma": 46822.43,
+                "quantidade": 557.0
+            },
+            "PASSAGEM AÉREA - RPA": {
+                "soma": 28408.93,
+                "quantidade": 22.0
+            },
+            "PASSAGEM AÉREA - REEMBOLSO": {
+                "soma": 20754.44,
+                "quantidade": 8.0
+            },
+            "PASSAGENS TERRESTRES, MARÍTIMAS OU FLUVIAIS": {
+                "soma": 13118.91,
+                "quantidade": 49.0
+            },
+            "LOCAÇÃO OU FRETAMENTO DE EMBARCAÇÕES": {
+                "soma": 9900.0,
+                "quantidade": 2.0
+            },
+            "ASSINATURA DE PUBLICAÇÕES": {
+                "soma": 3458.94,
+                "quantidade": 19.0
+            },
+            "AQUISIÇÃO DE TOKENS E CERTIFICADOS DIGITAIS": {
+                "soma": 374.9,
+                "quantidade": 1.0
+            }
+        },
+        "media_partido": {
+            "PRD": {
+                "media": 1809.7903174603175,
+                "quantidade": 126.0
+            },
+            "PV": {
+                "media": 1800.130188679245,
+                "quantidade": 106.0
+            },
+            "SOLIDARIEDADE": {
+                "media": 1762.4693,
+                "quantidade": 100.0
+            },
+            "MDB": {
+                "media": 1676.2305105438402,
+                "quantidade": 901.0
+            },
+            "PDT": {
+                "media": 1631.838588235294,
+                "quantidade": 425.0
+            },
+            "PCdoB": {
+                "media": 1617.658520710059,
+                "quantidade": 169.0
+            },
+            "REPUBLICANOS": {
+                "media": 1589.7271871657754,
+                "quantidade": 935.0
+            },
+            "PODE": {
+                "media": 1571.2997520661156,
+                "quantidade": 242.0
+            },
+            "PSD": {
+                "media": 1570.8872004357297,
+                "quantidade": 918.0
+            },
+            "UNIÃO": {
+                "media": 1533.5811269614837,
+                "quantidade": 1402.0
+            },
+            "PL": {
+                "media": 1457.014674364896,
+                "quantidade": 2165.0
+            },
+            "PP": {
+                "media": 1444.9158214285715,
+                "quantidade": 1120.0
+            },
+            "PSDB": {
+                "media": 1234.9239197530862,
+                "quantidade": 324.0
+            },
+            "PSOL": {
+                "media": 1172.8298904109588,
+                "quantidade": 365.0
+            },
+            "PSB": {
+                "media": 1158.1764379947228,
+                "quantidade": 379.0
+            },
+            "PT": {
+                "media": 1126.7264582265504,
+                "quantidade": 1951.0
+            },
+            "REDE": {
+                "media": 1036.1796666666667,
+                "quantidade": 30.0
+            },
+            "NOVO": {
+                "media": 957.0605,
+                "quantidade": 100.0
+            },
+            "CIDADANIA": {
+                "media": 891.0951960784314,
+                "quantidade": 102.0
+            },
+            "AVANTE": {
+                "media": 878.1470078740157,
+                "quantidade": 254.0
+            }
+        }
+    },
+    "insights": "**Insights Significativos:**\n\n* **Os gastos dos deputados variam amplamente:** Os 10 deputados com maiores gastos tiveram uma média de R$ 84.245,74 mensalmente, enquanto a média geral foi muito menor.\n\n* **Certos tipos de despesas representam a maior parte dos gastos:** A divulgação da atividade parlamentar (R$ 6.146.142), locação ou fretamento de veículos automotores (R$ 3.382.506) e manutenção de escritórios de apoio (R$ 2.511.547) foram as categorias de despesas mais significativas.\n\n* **O MDB teve o maior número absoluto de deputados com altos gastos:** Seis dos dez deputados com maiores gastos eram do MDB.\n\n* **O PL, com um número maior de deputados, apresentou um gasto médio significativamente menor:** Apesar de ter o maior número de deputados (2.165) entre os 10 partidos analisados, o PL teve um gasto médio de apenas R$ 1.457,01 por deputado.\n\n* **O PRD e o PV apresentaram os maiores gastos médios por deputado:** O PRD (R$ 1809,79) e o PV (R$ 1800,13) tiveram os maiores gastos médios por deputado, enquanto o NOVO teve o menor (R$ 957,06).\n\n* **Partidos de esquerda tendem a ter gastos menores:** Partidos de esquerda como o PT, PSB e PSOL geralmente apresentaram gastos médios mais baixos por deputado, enquanto partidos de direita como o PL, PP e REPUBLICANOS tiveram gastos médios mais altos.\n\n* **Anomalia:** João Carlos Bacelar, do PL, foi o deputado com maiores gastos (R$ 115.245,70), uma quantia significativamente maior do que os outros deputados na lista dos 10 maiores gastadores."
+}
