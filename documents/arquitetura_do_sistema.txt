@@ -124,7 +124,10 @@ Estrutura das pastas no projeto:
 └── 📄 README.md             # Documentação principal
 
 
-AT_eng_prompt_local/ ├── src/ # Código fonte │ ├── dataprep.py # Processamento offline │ ├── dashboard.py # Interface do usuário │ └── config.py # Configurações globais ├── data/ # Dados do sistema │ ├── raw/ # Dados brutos da API │ ├── processed/ # Dados processados │ ├── embeddings/ # Base vetorial FAISS │ ├── images/ # Imagens geradas │ └── config.yaml # Configurações do sistema ├── docs/ # Documentação │ ├── project_charter.txt │ ├── arquitetura_do_sistema.txt │ └── images/ ├── tests/ # Testes unitários ├── requirements.txt # Dependências ├── .env # Variáveis de ambiente └── README.md # Documentação principal
+AT_eng_prompt_local/ ├── src/ # Código fonte │ ├── dataprep.py # Processamento offline │ ├── dashboard.py # Interface do usuário │ └── config.py # Configurações globais ├── data/ # Dados do sistema │ ├── raw/ # Dados brutos da API │ ├── processed/ # Dados processados │ ├── embeddings/ # Base vetorial FAISS │ ├── images/ # Imagens geradas │ └── config.yaml # Configurações do sistema ├── docs/ # Documentação │ ├── project_charter.txt │ ├── arquitetura_do_sistema.txt │ └── images/ ├── tests/ # Testes unitários ├── requirements.txt # Dependências ├── .env # Variáveis de ambiente └── README.md # Documentação principal    from app.utils.analytics import AnalyticsEngine
+  File "C:\infnet_ultimo_semestre\AT_eng_prompt_local\app\utils\analytics.py", line 7, in <module>
+    from scipy import stats
+ModuleNotFoundError: No module named 'scipy'
 
 
 Esta estrutura foi organizada para:

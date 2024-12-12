@@ -51,6 +51,16 @@ def _load_json_file(file_path: str) -> List[Dict[str, Any]]:
         logger.error(error_msg)
         raise DataLoadError(error_msg)
 
+@st.cache_data
+def _load_parquet_file(file_path: str) -> pd.DataFrame:
+    """Carrega arquivo parquet com cache"""
+    try:
+        return pd.read_parquet(file_path)
+    except Exception as e:
+        error_msg = f"Erro ao carregar arquivo parquet: {str(e)}"
+        logger.error(error_msg)
+        raise DataLoadError(error_msg)
+
 @st.cache_resource
 def _verify_image_path(image_path: str) -> Optional[Path]:
     """Verifica existência de imagem com cache"""
@@ -72,6 +82,9 @@ class DataLoader:
         self.config = None
         self.insights = None
         self.last_update = None
+        self.deputados_df = None
+        self.proposicoes_df = None
+        self.despesas_df = None
     
     def load_config(self) -> Dict[str, Any]:
         """Carrega o arquivo de configuração YAML com cache"""
@@ -89,6 +102,49 @@ class DataLoader:
             self.insights = _load_json_file(insights_path)
             logger.info("Arquivo de insights carregado com sucesso")
             return self.insights
+
+    def load_deputados(self) -> pd.DataFrame:
+        """Carrega dados dos deputados"""
+        with st.spinner('Carregando dados dos deputados...'):
+            file_path = str(self.data_dir / "processed" / "deputados.parquet")
+            self.deputados_df = _load_parquet_file(file_path)
+            logger.info("Dados dos deputados carregados com sucesso")
+            return self.deputados_df
+
+    def load_proposicoes(self) -> pd.DataFrame:
+        """Carrega dados das proposições"""
+        with st.spinner('Carregando dados das proposições...'):
+            file_path = str(self.data_dir / "processed" / "proposicoes_deputados.parquet")
+            self.proposicoes_df = _load_parquet_file(file_path)
+            logger.info("Dados das proposições carregados com sucesso")
+            return self.proposicoes_df
+
+    def load_despesas(self) -> pd.DataFrame:
+        """Carrega dados das despesas"""
+        with st.spinner('Carregando dados das despesas...'):
+            file_path = str(self.data_dir / "processed" / "serie_despesas_diarias_deputados.parquet")
+            self.despesas_df = _load_parquet_file(file_path)
+            logger.info("Dados das despesas carregados com sucesso")
+            return self.despesas_df
+
+    def load_all_data(self) -> None:
+        """Carrega todos os dados necessários"""
+        try:
+            self.load_config()
+            self.load_insights()
+            self.load_deputados()
+            self.load_proposicoes()
+            self.load_despesas()
+            
+            # Verifica se os dados principais foram carregados
+            if self.deputados_df is None or self.deputados_df.empty:
+                raise DataLoadError("Falha ao carregar dados dos deputados")
+                
+            logger.info("Todos os dados foram carregados com sucesso")
+            
+        except Exception as e:
+            logger.error(f"Erro ao carregar dados: {str(e)}")
+            raise DataLoadError(f"Falha ao carregar dados: {str(e)}")
     
     def get_image_path(self, image_name: str) -> Optional[Path]:
         """Retorna o caminho para uma imagem com verificação de existência"""
@@ -98,3 +154,23 @@ class DataLoader:
     def get_last_update(self) -> str:
         """Retorna a data da última atualização dos dados"""
         return self.last_update.strftime("%d/%m/%Y %H:%M:%S") if self.last_update else "Não disponível"
+
+    def get_metricas_principais(self) -> Dict[str, Any]:
+        """Retorna as métricas principais para o dashboard"""
+        try:
+            total_deputados = len(self.deputados_df) if self.deputados_df is not None else 0
+            media_gastos = self.despesas_df['valorDocumento'].mean() if self.despesas_df is not None else 0
+            total_proposicoes = len(self.proposicoes_df) if self.proposicoes_df is not None else 0
+            
+            return {
+                "Total de Deputados": total_deputados,
+                "Média de Gastos": media_gastos,
+                "Total de Proposições": total_proposicoes
+            }
+        except Exception as e:
+            logger.error(f"Erro ao calcular métricas principais: {str(e)}")
+            return {
+                "Total de Deputados": 0,
+                "Média de Gastos": 0,
+                "Total de Proposições": 0
+            }
