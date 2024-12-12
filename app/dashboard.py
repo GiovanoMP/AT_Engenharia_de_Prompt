@@ -33,8 +33,6 @@ def initialize_session_state():
         st.session_state.data_loaded = False
     if 'error_message' not in st.session_state:
         st.session_state.error_message = None
-    if 'selected_filters' not in st.session_state:
-        st.session_state.selected_filters = {}
 
 class Dashboard:
     """Classe principal do dashboard"""
@@ -101,41 +99,6 @@ class Dashboard:
                 ["Visão Geral", "Despesas", "Proposições"],
                 key="page"
             )
-
-    def render_filters(self):
-        """Renderiza os filtros interativos"""
-        with st.sidebar:
-            st.subheader("Filtros")
-            
-            # Filtro de partido
-            if self.data_loader.deputados_df is not None:
-                partidos = ['Todos'] + sorted(self.data_loader.deputados_df['siglaPartido'].unique().tolist())
-                selected_partido = st.selectbox("Partido", partidos)
-                if selected_partido != 'Todos':
-                    st.session_state.selected_filters['partido'] = selected_partido
-                else:
-                    st.session_state.selected_filters.pop('partido', None)
-
-    def apply_filters(self, df):
-        """Aplica os filtros selecionados ao DataFrame"""
-        if df is None:
-            return None
-            
-        try:
-            # Filtro de período
-            start_date = pd.Timestamp('2024-08-01')
-            end_date = pd.Timestamp('2024-08-31')
-            df = df[df['dataDocumento'].between(start_date, end_date)]
-            
-            # Filtro de partido
-            if 'partido' in st.session_state.selected_filters:
-                partido = st.session_state.selected_filters['partido']
-                df = df[df['siglaPartido'] == partido]
-            
-            return df
-        except Exception as e:
-            logger.error(f"Erro ao aplicar filtros: {str(e)}")
-            return df
 
     def render_insights(self):
         """Renderiza os insights gerados"""
@@ -213,7 +176,7 @@ class Dashboard:
         
         # Análise temporal de despesas
         st.subheader("Evolução Temporal das Despesas")
-        df_despesas = self.apply_filters(self.data_loader.despesas_df)
+        df_despesas = self.data_loader.despesas_df
         if df_despesas is not None:
             fig = px.line(
                 df_despesas.groupby('dataDocumento')['valorDocumento'].sum().reset_index(),
@@ -262,7 +225,6 @@ class Dashboard:
     def render(self):
         """Renderiza o dashboard"""
         self.render_sidebar()
-        self.render_filters()
         
         # Recarrega os dados quando voltar para a visão geral
         if st.session_state.page == "Visão Geral" and not st.session_state.data_loaded:
