@@ -10,6 +10,7 @@ import os
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
+import json
 
 # Adiciona o diretório raiz ao PYTHONPATH
 root_dir = str(Path(__file__).parent.parent)
@@ -20,6 +21,7 @@ from app.utils.formatters import format_currency, format_percentage
 from app.utils.visualizations import Visualizer
 from app.utils.analytics import AnalyticsEngine
 from app.config.logging_config import setup_logging
+import json
 
 # Configuração de logging
 setup_logging()
@@ -103,24 +105,17 @@ class Dashboard:
     def render_insights(self):
         """Renderiza os insights gerados"""
         try:
-            insights = self.analytics.get_top_insights()
+            # Carrega os insights do arquivo JSON
+            with open('data/processed/insights_distribuicao_deputados.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                insights = data.get('insights', [])
             
             for insight in insights:
-                with st.expander(f"📊 {insight.title}", expanded=False):
-                    st.markdown(f"**Descrição:** {insight.description}")
-                    st.markdown("**Métricas Relevantes:**")
-                    for metric, value in insight.metrics.items():
-                        if isinstance(value, float):
-                            st.metric(metric, f"{value:.2f}")
-                        else:
-                            st.metric(metric, value)
-                    
-                    st.markdown("**Recomendações:**")
-                    for rec in insight.recommendations:
-                        st.markdown(f"- {rec}")
+                st.markdown(f"• {insight}")
+                
         except Exception as e:
             logger.error(f"Erro ao renderizar insights: {str(e)}")
-            st.error("Erro ao carregar insights")
+            st.error("Não foi possível carregar os insights.")
 
     def render_overview(self):
         """Renderiza a página de visão geral"""
