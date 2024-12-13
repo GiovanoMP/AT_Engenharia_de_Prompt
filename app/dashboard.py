@@ -9,6 +9,7 @@ import sys
 import os
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 import json
 
@@ -50,23 +51,21 @@ class Dashboard:
         """Carrega os dados necessários para o dashboard"""
         try:
             # Carrega os dados de despesas
-            self.serie_despesas = pd.read_parquet(os.path.join(root_dir, 'data/processed/serie_despesas_diarias_deputados.parquet'))
-            self.serie_despesas = self.serie_despesas.rename(columns={
-                'dataDocumento': 'data',
-                'nomeDeputado': 'nome',
-                'valorDocumento': 'valor'
-            })
-            self.deputados = sorted(self.serie_despesas['nome'].unique().tolist())
+            self.serie_despesas = pd.read_parquet("data/processed/serie_despesas_diarias_deputados.parquet")
+            logger.info(f"Colunas disponíveis em serie_despesas: {self.serie_despesas.columns.tolist()}")
+            
+            # Lista única de deputados
+            self.deputados = sorted(self.serie_despesas['nomeDeputado'].unique().tolist())
             
             # Carrega os insights de despesas
-            with open(os.path.join(root_dir, 'data/processed/insights_despesas_deputados.json'), 'r', encoding='utf-8') as f:
+            with open("data/processed/insights_despesas_deputados.json", "r", encoding="utf-8") as f:
                 self.insights_despesas = json.load(f)
             
             # Carrega os dados de proposições
-            self.proposicoes = pd.read_parquet(os.path.join(root_dir, 'data/processed/proposicoes_deputados.parquet'))
+            self.proposicoes = pd.read_parquet("data/processed/proposicoes_deputados.parquet")
             
             # Carrega a sumarização das proposições
-            with open(os.path.join(root_dir, 'data/processed/sumarizacao_proposicoes.json'), 'r', encoding='utf-8') as f:
+            with open("data/processed/sumarizacao_proposicoes.json", "r", encoding="utf-8") as f:
                 self.sumarizacao = json.load(f)
                 
         except Exception as e:
@@ -78,13 +77,12 @@ class Dashboard:
         try:
             st.header("Visão Geral da Câmara dos Deputados")
             
-            # Adiciona a descrição
+            # Adiciona a descrição do config.yaml
             with st.expander("Sobre a Câmara dos Deputados", expanded=True):
                 st.markdown("""
-                A Câmara dos Deputados é uma das casas do Congresso Nacional do Brasil. 
-                Ela é composta por representantes do povo, eleitos pelo sistema proporcional 
-                em cada estado, território e no Distrito Federal. Este dashboard apresenta 
-                análises sobre as atividades dos deputados, incluindo suas despesas e proposições.
+                A Câmara dos Deputados é uma das duas casas do Congresso Nacional brasileiro, composta por 513 deputados federais eleitos pelo povo. Representa a população dos estados e do Distrito Federal de forma proporcional, sendo um pilar fundamental da democracia brasileira e do Poder Legislativo. Os deputados são escolhidos através de eleições diretas a cada quatro anos, garantindo a representação dos interesses diversos da sociedade.
+                
+                Entre suas principais atribuições estão a criação e votação de leis, a fiscalização dos atos do Poder Executivo e o controle dos gastos públicos. A Câmara também tem papel crucial em decisões importantes como a aprovação do orçamento federal, a análise de medidas provisórias e o processo de impeachment do Presidente da República. Além disso, os deputados participam de comissões temáticas que debatem e propõem soluções para diferentes áreas como educação, saúde e economia.
                 """)
             
             # Seção de Insights
@@ -96,7 +94,7 @@ class Dashboard:
             
             # Calcula métricas
             total_deputados = len(self.deputados)
-            media_gastos = self.serie_despesas['valor'].mean() if not self.serie_despesas.empty else 0
+            media_gastos = self.serie_despesas['valorDocumento'].mean() if not self.serie_despesas.empty else 0
             total_proposicoes = len(self.proposicoes) if hasattr(self, 'proposicoes') else 0
             
             # Exibe métricas em colunas
@@ -110,37 +108,48 @@ class Dashboard:
             
             # Distribuição por partido
             st.subheader("Distribuição por Partido")
-            self.plot_distribuicao_partidos_from_data()
+            
+            # Gera o gráfico de distribuição por partido
+            if hasattr(self, 'serie_despesas') and not self.serie_despesas.empty:
+                # Agrupa por partido e conta deputados únicos
+                distribuicao = (
+                    self.serie_despesas[['nomeDeputado', 'siglaPartido']]
+                    .drop_duplicates()
+                    .groupby('siglaPartido')
+                    .size()
+                    .reset_index()
+                )
+                distribuicao.columns = ['partidos', 'quantidades']
+                distribuicao = distribuicao.sort_values('quantidades', ascending=False)
+                
+                # Cria o gráfico de barras horizontais com plotly
+                fig = go.Figure(data=[
+                    go.Bar(
+                        y=distribuicao['partidos'],
+                        x=distribuicao['quantidades'],
+                        orientation='h',
+                        text=distribuicao['quantidades'],
+                        textposition='auto',
+                    )
+                ])
+                
+                # Atualiza o layout para melhor visualização
+                fig.update_layout(
+                    title='Distribuição de Deputados por Partido',
+                    xaxis_title='Quantidade de Deputados',
+                    yaxis_title='Partido',
+                    height=max(400, len(distribuicao) * 25),
+                    showlegend=False,
+                    margin=dict(l=20, r=20, t=40, b=20),
+                    yaxis={'categoryorder':'total ascending'}
+                )
+                
+                # Exibe o gráfico
+                st.plotly_chart(fig, use_container_width=True)
                 
         except Exception as e:
             logger.error(f"Erro ao renderizar visão geral: {str(e)}")
             st.error("Erro ao renderizar visão geral.")
-
-    def plot_distribuicao_partidos_from_data(self):
-        """Gera gráfico de distribuição por partido usando os dados disponíveis"""
-        try:
-            # Usa os dados de despesas para obter a distribuição por partido
-            if hasattr(self, 'serie_despesas') and not self.serie_despesas.empty and 'partido' in self.serie_despesas.columns:
-                distribuicao = self.serie_despesas.groupby('partido').size().reset_index()
-                distribuicao.columns = ['Partido', 'Quantidade']
-                distribuicao = distribuicao.sort_values('Quantidade', ascending=False)
-                
-                # Gera o gráfico
-                fig = px.bar(
-                    distribuicao,
-                    x='Partido',
-                    y='Quantidade',
-                    title='Distribuição de Deputados por Partido',
-                    labels={'Partido': 'Partido', 'Quantidade': 'Quantidade de Deputados'}
-                )
-                fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("Dados de distribuição por partido não disponíveis")
-            
-        except Exception as e:
-            logger.error(f"Erro ao gerar gráfico de distribuição por partido: {str(e)}")
-            st.error("Erro ao gerar o gráfico de distribuição por partido.")
 
     def render_insights(self):
         """Renderiza os insights gerados"""
@@ -208,14 +217,14 @@ class Dashboard:
                         st.plotly_chart(fig_tipo, use_container_width=True)
                         
                         # Estatísticas do deputado
-                        dados_deputado = self.serie_despesas[self.serie_despesas['nome'] == deputado_selecionado]
+                        dados_deputado = self.serie_despesas[self.serie_despesas['nomeDeputado'] == deputado_selecionado]
                         col1, col2, col3 = st.columns(3)
                         with col1:
                             st.metric("Total de Despesas", 
-                                     format_currency(dados_deputado['valor'].sum()))
+                                     format_currency(dados_deputado['valorDocumento'].sum()))
                         with col2:
                             st.metric("Média Mensal", 
-                                     format_currency(dados_deputado['valor'].mean()))
+                                     format_currency(dados_deputado['valorDocumento'].mean()))
                         with col3:
                             st.metric("Número de Despesas", 
                                      f"{len(dados_deputado):,}")
@@ -229,7 +238,7 @@ class Dashboard:
     def plot_despesas_deputado(self, deputado):
         """Gera gráfico de despesas para um deputado específico"""
         try:
-            dados_deputado = self.serie_despesas[self.serie_despesas['nome'] == deputado]
+            dados_deputado = self.serie_despesas[self.serie_despesas['nomeDeputado'] == deputado]
             if dados_deputado.empty:
                 st.warning(f"Não foram encontradas despesas para o deputado {deputado}")
                 return None, None
@@ -237,19 +246,19 @@ class Dashboard:
             # Gráfico de linha temporal
             fig_temporal = px.line(
                 dados_deputado,
-                x='data',
-                y='valor',
+                x='dataDocumento',
+                y='valorDocumento',
                 title=f'Evolução das Despesas de {deputado}',
-                labels={'data': 'Data', 'valor': 'Valor (R$)'}
+                labels={'dataDocumento': 'Data', 'valorDocumento': 'Valor (R$)'}
             )
             
             # Gráfico de barras por tipo de despesa
             fig_tipo = px.bar(
-                dados_deputado.groupby('tipoDespesa')['valor'].sum().reset_index(),
+                dados_deputado.groupby('tipoDespesa')['valorDocumento'].sum().reset_index(),
                 x='tipoDespesa',
-                y='valor',
+                y='valorDocumento',
                 title=f'Despesas por Categoria - {deputado}',
-                labels={'tipoDespesa': 'Tipo de Despesa', 'valor': 'Valor Total (R$)'}
+                labels={'tipoDespesa': 'Tipo de Despesa', 'valorDocumento': 'Valor Total (R$)'}
             )
             fig_tipo.update_layout(xaxis_tickangle=-45)
             
@@ -265,120 +274,17 @@ class Dashboard:
         try:
             st.header("Análise de Proposições")
             
-            # Exibe resumo das proposições por tema
-            st.subheader("Resumo por Tema")
-            if hasattr(self, 'sumarizacao'):
-                for tema in self.sumarizacao.get('sumarizacoes_por_tema', []):
-                    with st.expander(f"{tema['tema']} ({tema['quantidade_proposicoes']} proposições)"):
-                        st.markdown(tema['sumarizacao'])
-            
-            # Exibe tabela de proposições com filtros
+            # Mostra a tabela de proposições
             st.subheader("Tabela de Proposições")
             if hasattr(self, 'proposicoes') and not self.proposicoes.empty:
-                try:
-                    # Verifica as colunas disponíveis
-                    colunas_disponiveis = self.proposicoes.columns.tolist()
-                    logger.info(f"Colunas disponíveis nas proposições: {colunas_disponiveis}")
-                    
-                    # Adiciona filtros apenas para colunas que existem
-                    col1, col2 = st.columns(2)
-                    
-                    tema_filtro = []
-                    if 'tema' in colunas_disponiveis:
-                        with col1:
-                            temas_disponiveis = sorted(self.proposicoes['tema'].unique().tolist())
-                            tema_filtro = st.multiselect(
-                                "Filtrar por Tema",
-                                options=temas_disponiveis,
-                                placeholder="Selecione os temas..."
-                            )
-                    
-                    situacao_filtro = []
-                    if 'situacao' in colunas_disponiveis:  # Mudamos de 'status' para 'situacao'
-                        with col2:
-                            situacoes_disponiveis = sorted(self.proposicoes['situacao'].unique().tolist())
-                            situacao_filtro = st.multiselect(
-                                "Filtrar por Situação",
-                                options=situacoes_disponiveis,
-                                placeholder="Selecione as situações..."
-                            )
-                    
-                    # Aplica filtros
-                    df_filtrado = self.proposicoes.copy()
-                    if tema_filtro and 'tema' in colunas_disponiveis:
-                        df_filtrado = df_filtrado[df_filtrado['tema'].isin(tema_filtro)]
-                    if situacao_filtro and 'situacao' in colunas_disponiveis:
-                        df_filtrado = df_filtrado[df_filtrado['situacao'].isin(situacao_filtro)]
-                    
-                    # Mostra estatísticas
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Total de Proposições", f"{len(df_filtrado):,}")
-                    with col2:
-                        if 'tema' in colunas_disponiveis:
-                            st.metric("Temas Únicos", f"{df_filtrado['tema'].nunique():,}")
-                    with col3:
-                        if 'situacao' in colunas_disponiveis:
-                            st.metric("Situações Únicas", f"{df_filtrado['situacao'].nunique():,}")
-                    
-                    # Configura as colunas para exibição
-                    column_config = {}
-                    for col in colunas_disponiveis:
-                        # Mapeia os nomes das colunas para português
-                        column_map = {
-                            'tema': 'Tema',
-                            'situacao': 'Situação',
-                            'data': 'Data',
-                            'autor': 'Autor',
-                            'ementa': 'Ementa',
-                            'tipo': 'Tipo',
-                            'numero': 'Número'
-                        }
-                        if col in column_map:
-                            column_config[col] = column_map[col]
-                    
-                    # Exibe a tabela filtrada
-                    st.dataframe(
-                        df_filtrado,
-                        column_config=column_config,
-                        hide_index=True
-                    )
-                    
-                    # Adiciona visualizações se houver dados
-                    if not df_filtrado.empty:
-                        col1, col2 = st.columns(2)
-                        
-                        # Gráfico por tema
-                        if 'tema' in colunas_disponiveis:
-                            with col1:
-                                contagem_temas = df_filtrado['tema'].value_counts()
-                                fig_tema = px.pie(
-                                    values=contagem_temas.values,
-                                    names=contagem_temas.index,
-                                    title='Distribuição por Tema'
-                                )
-                                st.plotly_chart(fig_tema, use_container_width=True)
-                        
-                        # Gráfico por situação
-                        if 'situacao' in colunas_disponiveis:
-                            with col2:
-                                contagem_situacao = df_filtrado['situacao'].value_counts()
-                                fig_situacao = px.bar(
-                                    x=contagem_situacao.index,
-                                    y=contagem_situacao.values,
-                                    title='Quantidade por Situação',
-                                    labels={'x': 'Situação', 'y': 'Quantidade'}
-                                )
-                                fig_situacao.update_layout(xaxis_tickangle=-45)
-                                st.plotly_chart(fig_situacao, use_container_width=True)
-                    else:
-                        st.info("Nenhum dado encontrado para os filtros selecionados")
-                        
-                except Exception as e:
-                    logger.error(f"Erro ao processar dados de proposições: {str(e)}")
-                    st.error("Erro ao processar dados de proposições.")
-            else:
-                st.warning("Dados de proposições não disponíveis")
+                st.dataframe(self.proposicoes)
+            
+            # Mostra o resumo das proposições por tema
+            st.subheader("Resumo das Proposições por Tema")
+            if hasattr(self, 'sumarizacao'):
+                for tema in self.sumarizacao.get('sumarizacoes_por_tema', []):
+                    with st.expander(f"📑 {tema['tema']} ({tema['quantidade_proposicoes']} proposições)", expanded=False):
+                        st.markdown(tema['sumarizacao'])
                 
         except Exception as e:
             logger.error(f"Erro ao renderizar aba de proposições: {str(e)}")
