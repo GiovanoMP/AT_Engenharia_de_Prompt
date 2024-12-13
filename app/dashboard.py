@@ -19,22 +19,11 @@ sys.path.insert(0, root_dir)
 from app.utils.data_loader import DataLoader
 from app.utils.formatters import format_currency, format_percentage
 from app.utils.visualizations import Visualizer
-from app.utils.analytics import AnalyticsEngine
 from app.config.logging_config import setup_logging
-import json
 
 # Configuração de logging
 setup_logging()
 logger = logging.getLogger(__name__)
-
-def initialize_session_state():
-    """Inicializa o estado da sessão do Streamlit"""
-    if 'page' not in st.session_state:
-        st.session_state.page = 'Visão Geral'
-    if 'data_loaded' not in st.session_state:
-        st.session_state.data_loaded = False
-    if 'error_message' not in st.session_state:
-        st.session_state.error_message = None
 
 class Dashboard:
     """Classe principal do dashboard"""
@@ -42,71 +31,121 @@ class Dashboard:
     def __init__(self):
         """Inicializa o dashboard"""
         try:
-            # Configuração inicial da página
-            st.set_page_config(
-                page_title="Dashboard - Câmara dos Deputados",
-                page_icon="📊",
-                layout="wide"
-            )
-            
-            # Inicializa o estado da sessão
-            initialize_session_state()
-            
-            # Inicializa os componentes
-            self.data_loader = DataLoader(data_dir="data")
-            self.visualizer = Visualizer(data_dir="data")
-            
-            # Carrega os dados apenas uma vez
-            if not st.session_state.get('data_loaded', False):
-                with st.spinner('Carregando dados...'):
-                    self.data_loader.load_all_data()
-                    st.session_state.data_loaded = True
-                    logger.info("Dados carregados com sucesso")
-            
-            # Inicializa o analytics após carregar os dados
-            self.analytics = AnalyticsEngine(self.data_loader)
-            
+            self.load_data()
+            self.setup_page()
         except Exception as e:
-            logger.error(f"Erro na inicialização do dashboard: {str(e)}")
-            st.error("Erro ao inicializar o dashboard. Por favor, recarregue a página.")
-            raise
+            logger.error(f"Erro ao inicializar o dashboard: {str(e)}")
+            st.error("Erro ao inicializar o dashboard.")
 
     def setup_page(self):
         """Configura a página do Streamlit"""
         st.set_page_config(
-            page_title="Dashboard Câmara dos Deputados",
-            page_icon="🏛️",
-            layout="wide",
-            initial_sidebar_state="expanded"
+            page_title="Dashboard - Análise de Deputados",
+            page_icon="📊",
+            layout="wide"
         )
+        st.title("Dashboard - Análise de Deputados")
 
     def load_data(self):
-        """Carrega os dados necessários"""
+        """Carrega os dados necessários para o dashboard"""
         try:
-            self.data_loader.load_all_data()
-            st.session_state.error_message = None
-            logger.info("Dados carregados com sucesso")
+            # Carrega os dados de despesas
+            self.serie_despesas = pd.read_parquet(os.path.join(root_dir, 'data/processed/serie_despesas_diarias_deputados.parquet'))
+            self.serie_despesas = self.serie_despesas.rename(columns={
+                'dataDocumento': 'data',
+                'nomeDeputado': 'nome',
+                'valorDocumento': 'valor'
+            })
+            self.deputados = sorted(self.serie_despesas['nome'].unique().tolist())
+            
+            # Carrega os insights de despesas
+            with open(os.path.join(root_dir, 'data/processed/insights_despesas_deputados.json'), 'r', encoding='utf-8') as f:
+                self.insights_despesas = json.load(f)
+            
+            # Carrega os dados de proposições
+            self.proposicoes = pd.read_parquet(os.path.join(root_dir, 'data/processed/proposicoes_deputados.parquet'))
+            
+            # Carrega a sumarização das proposições
+            with open(os.path.join(root_dir, 'data/processed/sumarizacao_proposicoes.json'), 'r', encoding='utf-8') as f:
+                self.sumarizacao = json.load(f)
+                
         except Exception as e:
-            error_msg = f"Erro ao carregar dados: {str(e)}"
-            logger.error(error_msg)
-            st.session_state.error_message = error_msg
+            logger.error(f"Erro ao carregar dados: {str(e)}")
             raise
 
-    def render_sidebar(self):
-        """Renderiza a barra lateral"""
-        with st.sidebar:
-            st.title("Navegação")
-            st.radio(
-                "Escolha uma página",
-                ["Visão Geral", "Despesas", "Proposições"],
-                key="page"
-            )
+    def render_aba_visao_geral(self):
+        """Renderiza a aba de visão geral"""
+        try:
+            st.header("Visão Geral da Câmara dos Deputados")
+            
+            # Adiciona a descrição
+            with st.expander("Sobre a Câmara dos Deputados", expanded=True):
+                st.markdown("""
+                A Câmara dos Deputados é uma das casas do Congresso Nacional do Brasil. 
+                Ela é composta por representantes do povo, eleitos pelo sistema proporcional 
+                em cada estado, território e no Distrito Federal. Este dashboard apresenta 
+                análises sobre as atividades dos deputados, incluindo suas despesas e proposições.
+                """)
+            
+            # Seção de Insights
+            st.header("Insights Principais")
+            self.render_insights()
+            
+            # Métricas principais
+            st.header("Métricas Principais")
+            
+            # Calcula métricas
+            total_deputados = len(self.deputados)
+            media_gastos = self.serie_despesas['valor'].mean() if not self.serie_despesas.empty else 0
+            total_proposicoes = len(self.proposicoes) if hasattr(self, 'proposicoes') else 0
+            
+            # Exibe métricas em colunas
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total de Deputados", f"{total_deputados:,}")
+            with col2:
+                st.metric("Média de Gastos", format_currency(media_gastos))
+            with col3:
+                st.metric("Total de Proposições", f"{total_proposicoes:,}")
+            
+            # Distribuição por partido
+            st.subheader("Distribuição por Partido")
+            self.plot_distribuicao_partidos_from_data()
+                
+        except Exception as e:
+            logger.error(f"Erro ao renderizar visão geral: {str(e)}")
+            st.error("Erro ao renderizar visão geral.")
+
+    def plot_distribuicao_partidos_from_data(self):
+        """Gera gráfico de distribuição por partido usando os dados disponíveis"""
+        try:
+            # Usa os dados de despesas para obter a distribuição por partido
+            if hasattr(self, 'serie_despesas') and not self.serie_despesas.empty and 'partido' in self.serie_despesas.columns:
+                distribuicao = self.serie_despesas.groupby('partido').size().reset_index()
+                distribuicao.columns = ['Partido', 'Quantidade']
+                distribuicao = distribuicao.sort_values('Quantidade', ascending=False)
+                
+                # Gera o gráfico
+                fig = px.bar(
+                    distribuicao,
+                    x='Partido',
+                    y='Quantidade',
+                    title='Distribuição de Deputados por Partido',
+                    labels={'Partido': 'Partido', 'Quantidade': 'Quantidade de Deputados'}
+                )
+                fig.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Dados de distribuição por partido não disponíveis")
+            
+        except Exception as e:
+            logger.error(f"Erro ao gerar gráfico de distribuição por partido: {str(e)}")
+            st.error("Erro ao gerar o gráfico de distribuição por partido.")
 
     def render_insights(self):
         """Renderiza os insights gerados"""
         try:
-            # Carrega os insights do arquivo JSON
-            with open('data/processed/insights_distribuicao_deputados.json', 'r', encoding='utf-8') as f:
+            with open(os.path.join(root_dir, 'data/processed/insights_distribuicao_deputados.json'), 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 insights = data.get('insights', [])
             
@@ -117,144 +156,258 @@ class Dashboard:
             logger.error(f"Erro ao renderizar insights: {str(e)}")
             st.error("Não foi possível carregar os insights.")
 
-    def render_overview(self):
-        """Renderiza a página de visão geral"""
+    def render_aba_despesas(self):
+        """Renderiza a aba de Despesas"""
         try:
-            st.title("Visão Geral da Câmara dos Deputados")
+            st.header("Análise de Despesas")
             
-            # Verifica se os dados estão disponíveis
-            if self.data_loader.deputados_df is None or self.data_loader.deputados_df.empty:
-                st.error("Dados não disponíveis. Por favor, recarregue a página.")
-                return
+            # Exibe insights de despesas
+            st.subheader("Insights sobre Despesas")
+            insights_text = self.insights_despesas.get('insights', '')
+            st.markdown(insights_text)
             
-            # Adiciona a descrição do config.yaml
-            with st.expander("Sobre a Câmara dos Deputados", expanded=True):
-                st.markdown(self.data_loader.config["overview_summary"]["description"])
+            # Análise dos Top 10 Deputados
+            st.subheader("Top 10 Deputados com Maiores Gastos")
+            if 'analises' in self.insights_despesas and 'top_10_deputados' in self.insights_despesas['analises']:
+                top_10 = self.insights_despesas['analises']['top_10_deputados']
+                
+                # Criar DataFrame para visualização
+                top_10_df = pd.DataFrame({
+                    'Deputado': list(top_10['valores'].keys()),
+                    'Valor': list(top_10['valores'].values()),
+                    'Partido': [top_10['partidos'].get(dep, 'N/A') for dep in top_10['valores'].keys()]
+                })
+                
+                # Gráfico de barras dos top 10
+                fig_top10 = px.bar(
+                    top_10_df,
+                    x='Deputado',
+                    y='Valor',
+                    color='Partido',
+                    title='Top 10 Deputados por Valor de Despesas',
+                    labels={'Valor': 'Valor Total (R$)'}
+                )
+                fig_top10.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig_top10, use_container_width=True)
             
-            # Seção de Insights
-            st.header("Insights Principais")
-            self.render_insights()
-            
-            # Métricas principais
-            st.header("Métricas Principais")
-            metricas = self.data_loader.get_metricas_principais()
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total de Deputados", metricas["Total de Deputados"])
-            with col2:
-                st.metric("Média de Gastos", format_currency(metricas["Média de Gastos"]))
-            with col3:
-                st.metric("Total de Proposições", metricas["Total de Proposições"])
-            
-            # Visualizações interativas
-            st.header("Análises Detalhadas")
-            
-            # Distribuição por partido
-            st.subheader("Distribuição por Partido")
-            try:
-                fig = self.visualizer.plot_distribuicao_partidos(interactive=True)
-                if fig is not None:
-                    st.plotly_chart(fig, use_container_width=True)
-            
-            except Exception as e:
-                logger.error(f"Erro ao exibir distribuição por partido: {str(e)}")
-                st.error("Não foi possível exibir a distribuição por partido.")
-        
+            # Seleção de deputado individual
+            st.subheader("Análise Individual de Deputado")
+            if hasattr(self, 'deputados') and self.deputados:
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    deputado_selecionado = st.selectbox(
+                        "Selecione um Deputado para Análise",
+                        options=["Selecione um deputado..."] + self.deputados,
+                        index=0
+                    )
+                
+                if deputado_selecionado and deputado_selecionado != "Selecione um deputado...":
+                    fig_temporal, fig_tipo = self.plot_despesas_deputado(deputado_selecionado)
+                    if fig_temporal is not None and fig_tipo is not None:
+                        st.plotly_chart(fig_temporal, use_container_width=True)
+                        st.plotly_chart(fig_tipo, use_container_width=True)
+                        
+                        # Estatísticas do deputado
+                        dados_deputado = self.serie_despesas[self.serie_despesas['nome'] == deputado_selecionado]
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Total de Despesas", 
+                                     format_currency(dados_deputado['valor'].sum()))
+                        with col2:
+                            st.metric("Média Mensal", 
+                                     format_currency(dados_deputado['valor'].mean()))
+                        with col3:
+                            st.metric("Número de Despesas", 
+                                     f"{len(dados_deputado):,}")
+            else:
+                st.warning("Lista de deputados não disponível")
+                    
         except Exception as e:
-            logger.error(f"Erro ao renderizar visão geral: {str(e)}")
-            st.error("Erro ao carregar a visão geral. Por favor, recarregue a página.")
+            logger.error(f"Erro ao renderizar aba de despesas: {str(e)}")
+            st.error("Erro ao renderizar aba de despesas.")
 
-    def render_expenses(self):
-        """Renderiza a página de despesas"""
-        st.title("Análise de Despesas")
-        
-        # Análise temporal de despesas
-        st.subheader("Evolução Temporal das Despesas")
-        df_despesas = self.data_loader.despesas_df
-        if df_despesas is not None:
-            fig = px.line(
-                df_despesas.groupby('dataDocumento')['valorDocumento'].sum().reset_index(),
-                x='dataDocumento',
-                y='valorDocumento',
-                title='Evolução das Despesas ao Longo do Tempo'
+    def plot_despesas_deputado(self, deputado):
+        """Gera gráfico de despesas para um deputado específico"""
+        try:
+            dados_deputado = self.serie_despesas[self.serie_despesas['nome'] == deputado]
+            if dados_deputado.empty:
+                st.warning(f"Não foram encontradas despesas para o deputado {deputado}")
+                return None, None
+            
+            # Gráfico de linha temporal
+            fig_temporal = px.line(
+                dados_deputado,
+                x='data',
+                y='valor',
+                title=f'Evolução das Despesas de {deputado}',
+                labels={'data': 'Data', 'valor': 'Valor (R$)'}
             )
-            st.plotly_chart(fig, use_container_width=True)
             
-            # Detecção de outliers
-            st.subheader("Despesas Atípicas")
-            outliers = self.analytics.detect_outliers(df_despesas, 'valorDocumento')
-            if len(outliers) > 0:
-                st.warning(f"Foram detectadas {len(outliers)} despesas atípicas")
-                st.dataframe(outliers)
-
-    def render_propositions(self):
-        """Renderiza a página de proposições"""
-        st.title("Análise de Proposições")
-        
-        if self.data_loader.proposicoes_df is not None:
-            # Status das proposições
-            st.subheader("Status das Proposições")
-            status_counts = self.data_loader.proposicoes_df['status'].value_counts()
-            fig = px.pie(
-                values=status_counts.values,
-                names=status_counts.index,
-                title='Distribuição de Status das Proposições'
+            # Gráfico de barras por tipo de despesa
+            fig_tipo = px.bar(
+                dados_deputado.groupby('tipoDespesa')['valor'].sum().reset_index(),
+                x='tipoDespesa',
+                y='valor',
+                title=f'Despesas por Categoria - {deputado}',
+                labels={'tipoDespesa': 'Tipo de Despesa', 'valor': 'Valor Total (R$)'}
             )
-            st.plotly_chart(fig, use_container_width=True)
+            fig_tipo.update_layout(xaxis_tickangle=-45)
             
-            # Análise temporal
-            st.subheader("Evolução Temporal")
-            prop_por_mes = self.data_loader.proposicoes_df.groupby(
-                pd.Grouper(key='dataApresentacao', freq='M')
-            ).size().reset_index(name='count')
+            return fig_temporal, fig_tipo
             
-            fig = px.line(
-                prop_por_mes,
-                x='dataApresentacao',
-                y='count',
-                title='Proposições por Mês'
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            logger.error(f"Erro ao gerar gráfico: {str(e)}")
+            st.error("Erro ao gerar o gráfico de despesas.")
+            return None, None
 
-    def render(self):
-        """Renderiza o dashboard"""
-        self.render_sidebar()
-        
-        # Recarrega os dados quando voltar para a visão geral
-        if st.session_state.page == "Visão Geral" and not st.session_state.data_loaded:
-            try:
-                self.load_data()
-                st.session_state.data_loaded = True
-            except Exception as e:
-                logger.error(f"Erro ao recarregar dados: {str(e)}")
-                st.error("Erro ao recarregar os dados. Por favor, recarregue a página.")
-                return
-        
-        if st.session_state.page == "Visão Geral":
-            self.render_overview()
-        elif st.session_state.page == "Despesas":
-            st.session_state.data_loaded = False
-            self.render_expenses()
-        elif st.session_state.page == "Proposições":
-            st.session_state.data_loaded = False
-            self.render_propositions()
-
-def main():
-    """Função principal do dashboard"""
-    try:
-        initialize_session_state()
-        dashboard = Dashboard()
-        
-        if st.session_state.error_message:
-            st.error(st.session_state.error_message)
-            return
-        
-        dashboard.render()
+    def render_aba_proposicoes(self):
+        """Renderiza a aba de Proposições"""
+        try:
+            st.header("Análise de Proposições")
             
-    except Exception as e:
-        logger.error(f"Erro fatal: {str(e)}")
-        st.error("Ocorreu um erro inesperado. Por favor, recarregue a página ou contate o suporte.")
+            # Exibe resumo das proposições por tema
+            st.subheader("Resumo por Tema")
+            if hasattr(self, 'sumarizacao'):
+                for tema in self.sumarizacao.get('sumarizacoes_por_tema', []):
+                    with st.expander(f"{tema['tema']} ({tema['quantidade_proposicoes']} proposições)"):
+                        st.markdown(tema['sumarizacao'])
+            
+            # Exibe tabela de proposições com filtros
+            st.subheader("Tabela de Proposições")
+            if hasattr(self, 'proposicoes') and not self.proposicoes.empty:
+                try:
+                    # Verifica as colunas disponíveis
+                    colunas_disponiveis = self.proposicoes.columns.tolist()
+                    logger.info(f"Colunas disponíveis nas proposições: {colunas_disponiveis}")
+                    
+                    # Adiciona filtros apenas para colunas que existem
+                    col1, col2 = st.columns(2)
+                    
+                    tema_filtro = []
+                    if 'tema' in colunas_disponiveis:
+                        with col1:
+                            temas_disponiveis = sorted(self.proposicoes['tema'].unique().tolist())
+                            tema_filtro = st.multiselect(
+                                "Filtrar por Tema",
+                                options=temas_disponiveis,
+                                placeholder="Selecione os temas..."
+                            )
+                    
+                    situacao_filtro = []
+                    if 'situacao' in colunas_disponiveis:  # Mudamos de 'status' para 'situacao'
+                        with col2:
+                            situacoes_disponiveis = sorted(self.proposicoes['situacao'].unique().tolist())
+                            situacao_filtro = st.multiselect(
+                                "Filtrar por Situação",
+                                options=situacoes_disponiveis,
+                                placeholder="Selecione as situações..."
+                            )
+                    
+                    # Aplica filtros
+                    df_filtrado = self.proposicoes.copy()
+                    if tema_filtro and 'tema' in colunas_disponiveis:
+                        df_filtrado = df_filtrado[df_filtrado['tema'].isin(tema_filtro)]
+                    if situacao_filtro and 'situacao' in colunas_disponiveis:
+                        df_filtrado = df_filtrado[df_filtrado['situacao'].isin(situacao_filtro)]
+                    
+                    # Mostra estatísticas
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Total de Proposições", f"{len(df_filtrado):,}")
+                    with col2:
+                        if 'tema' in colunas_disponiveis:
+                            st.metric("Temas Únicos", f"{df_filtrado['tema'].nunique():,}")
+                    with col3:
+                        if 'situacao' in colunas_disponiveis:
+                            st.metric("Situações Únicas", f"{df_filtrado['situacao'].nunique():,}")
+                    
+                    # Configura as colunas para exibição
+                    column_config = {}
+                    for col in colunas_disponiveis:
+                        # Mapeia os nomes das colunas para português
+                        column_map = {
+                            'tema': 'Tema',
+                            'situacao': 'Situação',
+                            'data': 'Data',
+                            'autor': 'Autor',
+                            'ementa': 'Ementa',
+                            'tipo': 'Tipo',
+                            'numero': 'Número'
+                        }
+                        if col in column_map:
+                            column_config[col] = column_map[col]
+                    
+                    # Exibe a tabela filtrada
+                    st.dataframe(
+                        df_filtrado,
+                        column_config=column_config,
+                        hide_index=True
+                    )
+                    
+                    # Adiciona visualizações se houver dados
+                    if not df_filtrado.empty:
+                        col1, col2 = st.columns(2)
+                        
+                        # Gráfico por tema
+                        if 'tema' in colunas_disponiveis:
+                            with col1:
+                                contagem_temas = df_filtrado['tema'].value_counts()
+                                fig_tema = px.pie(
+                                    values=contagem_temas.values,
+                                    names=contagem_temas.index,
+                                    title='Distribuição por Tema'
+                                )
+                                st.plotly_chart(fig_tema, use_container_width=True)
+                        
+                        # Gráfico por situação
+                        if 'situacao' in colunas_disponiveis:
+                            with col2:
+                                contagem_situacao = df_filtrado['situacao'].value_counts()
+                                fig_situacao = px.bar(
+                                    x=contagem_situacao.index,
+                                    y=contagem_situacao.values,
+                                    title='Quantidade por Situação',
+                                    labels={'x': 'Situação', 'y': 'Quantidade'}
+                                )
+                                fig_situacao.update_layout(xaxis_tickangle=-45)
+                                st.plotly_chart(fig_situacao, use_container_width=True)
+                    else:
+                        st.info("Nenhum dado encontrado para os filtros selecionados")
+                        
+                except Exception as e:
+                    logger.error(f"Erro ao processar dados de proposições: {str(e)}")
+                    st.error("Erro ao processar dados de proposições.")
+            else:
+                st.warning("Dados de proposições não disponíveis")
+                
+        except Exception as e:
+            logger.error(f"Erro ao renderizar aba de proposições: {str(e)}")
+            st.error("Erro ao renderizar aba de proposições.")
+
+    def run(self):
+        """Executa o dashboard"""
+        try:
+            # Criação das abas
+            tab_visao_geral, tab_despesas, tab_proposicoes = st.tabs([
+                "Visão Geral",
+                "Despesas",
+                "Proposições"
+            ])
+
+            # Renderiza cada aba
+            with tab_visao_geral:
+                self.render_aba_visao_geral()
+            
+            with tab_despesas:
+                self.render_aba_despesas()
+            
+            with tab_proposicoes:
+                self.render_aba_proposicoes()
+                
+        except Exception as e:
+            logger.error(f"Erro ao executar o dashboard: {str(e)}")
+            st.error("Erro ao executar o dashboard.")
 
 if __name__ == "__main__":
-    main()
+    dashboard = Dashboard()
+    dashboard.run()
