@@ -52,12 +52,12 @@ def search_all_indices(manager, query, k=10):
     
     # Mapeamento de índices para prioridade
     priority_map = {
-        'insights_distribuicao': 1,
+        'insights_distribuicao': 0.5,  # Maior prioridade (score menor = mais relevante)
         'insights_despesas': 1,
-        'sumarizacoes': 2,
-        'deputados': 3,
-        'despesas': 3,
-        'proposicoes': 3
+        'sumarizacoes': 1.5,
+        'deputados': 2,
+        'despesas': 2,
+        'proposicoes': 2
     }
     
     for index_name in indices:
@@ -105,16 +105,22 @@ def format_context(results):
     # Formata o contexto
     formatted_parts = []
     
-    # Primeiro insights e sumarizações
-    for source in ['insights_distribuicao', 'insights_despesas', 'sumarizacoes']:
+    # Primeiro os insights de distribuição (mais importantes)
+    if 'insights_distribuicao' in context_by_source:
+        formatted_parts.append("\n=== DISTRIBUIÇÃO PARTIDÁRIA (ANÁLISE GERAL) ===\n")
+        formatted_parts.extend(context_by_source['insights_distribuicao'])
+        del context_by_source['insights_distribuicao']
+    
+    # Depois outros insights e sumarizações
+    for source in ['insights_despesas', 'sumarizacoes']:
         if source in context_by_source:
             formatted_parts.append(f"\n=== {source.upper()} ===\n")
             formatted_parts.extend(context_by_source[source])
             del context_by_source[source]
     
-    # Depois os dados específicos
+    # Por fim, dados específicos
     for source, texts in context_by_source.items():
-        formatted_parts.append(f"\n=== {source.upper()} ===\n")
+        formatted_parts.append(f"\n=== DADOS ESPECÍFICOS: {source.upper()} ===\n")
         formatted_parts.extend(texts)
     
     return "\n".join(formatted_parts)
@@ -124,69 +130,68 @@ def get_gemini_response(query, context):
     model = genai.GenerativeModel('gemini-pro')
     
     SYSTEM_PROMPT = """Você é um especialista em análise de dados parlamentares com vasta experiência em interpretar informações da Câmara dos Deputados.
-    Como analista experiente, você deve usar a técnica Self-Ask para estruturar seu raciocínio:
+    Como analista experiente, você deve usar a técnica Self-Ask para estruturar seu raciocínio, seguindo uma análise hierárquica:
+
+    1. ANÁLISE HIERÁRQUICA COM SELF-ASK:
     
-    1. TÉCNICA SELF-ASK:
-    - Faça perguntas específicas para si mesmo sobre o problema
-    - Responda cada pergunta usando os dados disponíveis
-    - Use as respostas para construir seu raciocínio
-    - Questione suas próprias conclusões
+    Nível 1 - Análise Geral:
+    Q: Existe uma análise geral ou distribuição global no contexto?
+    A: Procure na seção "DISTRIBUIÇÃO PARTIDÁRIA (ANÁLISE GERAL)"
     
-    Exemplo de Self-Ask:
-    Q: Quais dados são necessários para responder esta pergunta?
-    A: Preciso de X, Y e Z...
+    Q: Quais são os principais números e percentuais dessa análise?
+    A: Liste os números encontrados
     
-    Q: Estes dados estão disponíveis no contexto?
-    A: Sim/Não, encontrei/não encontrei...
+    Nível 2 - Validação:
+    Q: Os dados específicos confirmam a análise geral?
+    A: Compare com dados específicos se necessário
     
-    Q: Que análises posso fazer com estes dados?
-    A: Posso comparar X com Y...
+    Q: Existem discrepâncias ou pontos a esclarecer?
+    A: Identifique possíveis inconsistências
     
-    Q: Esta conclusão é suportada pelos dados?
-    A: Sim/Não, porque...
+    Nível 3 - Conclusão:
+    Q: Qual é a resposta mais precisa baseada em todos os dados?
+    A: Combine análise geral com validações específicas
     
-    2. ANÁLISE DE DADOS:
-    - Analise criticamente os dados disponíveis
-    - Identifique padrões e tendências relevantes
-    - Faça inferências razoáveis quando apropriado
-    - Use seu conhecimento especializado para contextualizar
+    2. REGRAS DE ANÁLISE:
+    - SEMPRE comece pela análise geral/distribuição global
+    - Use dados específicos apenas para validação
+    - Cite números e percentuais exatos quando disponíveis
+    - Indique claramente a fonte dos dados (geral ou específica)
     
-    3. COMUNICAÇÃO:
-    - Estruture sua resposta de forma clara
-    - Explique seu raciocínio passo a passo
-    - Destaque limitações e incertezas
-    - Forneça exemplos específicos dos dados
+    3. ESTRUTURA DA RESPOSTA:
+    - Comece com a conclusão principal (baseada na análise geral)
+    - Forneça os números exatos e percentuais
+    - Adicione contexto e validações
+    - Mencione limitações apenas se relevantes
     
-    Lembre-se: Use Self-Ask para guiar seu pensamento e tornar seu raciocínio transparente."""
+    Lembre-se: A análise geral e distribuições globais são mais confiáveis que exemplos específicos."""
 
     USER_PROMPT = """Pergunta: {query}
 
     Contexto disponível:
     {context}
 
-    Use a técnica Self-Ask para analisar a pergunta:
+    Use a técnica Self-Ask com análise hierárquica:
 
-    1. QUESTÕES INICIAIS:
-    - Do que precisamente trata esta pergunta?
-    - Quais dados são necessários para respondê-la?
-    - Estes dados estão disponíveis no contexto?
+    1. ANÁLISE DA DISTRIBUIÇÃO GERAL:
+    Q: O que mostra a análise geral de distribuição partidária?
+    A: [Procure na seção específica]
+    
+    Q: Quais são os números e percentuais principais?
+    A: [Liste os dados encontrados]
 
-    2. ANÁLISE DOS DADOS:
-    - Que padrões posso identificar nos dados?
-    - Como posso verificar se estes padrões são significativos?
-    - Que conclusões posso tirar com segurança?
+    2. VALIDAÇÃO COM DADOS ESPECÍFICOS:
+    Q: Os dados específicos confirmam a análise geral?
+    A: [Compare se necessário]
+    
+    Q: Existem informações adicionais relevantes?
+    A: [Identifique dados complementares]
 
-    3. VALIDAÇÃO:
-    - Minhas conclusões são suportadas pelos dados?
-    - Existem limitações importantes a considerar?
-    - Que ressalvas preciso fazer?
-
-    4. RESPOSTA FINAL:
-    Estruture sua resposta incluindo:
-    - Processo de raciocínio usado
-    - Dados e análises realizadas
-    - Conclusões e limitações
-    - Recomendações, se apropriado"""
+    3. CONCLUSÃO FINAL:
+    - Apresente a conclusão baseada principalmente na análise geral
+    - Cite números e percentuais exatos
+    - Adicione contexto relevante
+    - Mencione fonte dos dados"""
 
     prompt = SYSTEM_PROMPT + "\n\n" + USER_PROMPT.format(query=query, context=context)
     
